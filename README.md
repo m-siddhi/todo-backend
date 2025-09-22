@@ -8,7 +8,7 @@ It provides RESTful APIs to manage tasks (create, read, update, delete, and sear
 ## Setup
 1. Clone the repo
 2. Run `npm install`
-3. CreateD a `.env` file
+3. Created a `.env` file
 4. Run locally with npm start
 5.  Test APIs with Postman:
 - `POST /api/tasks`
