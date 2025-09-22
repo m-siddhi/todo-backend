@@ -3,7 +3,8 @@
 This is the backend for the To-Do List app, built with **Node.js**, **Express.js**, and **MongoDB**.  
 It provides RESTful APIs to manage tasks (create, read, update, delete, and search).
 
-# To-Do List Backend
+Challenge: MongoDB Atlas was not connecting on Render.
+Solution: Added 0.0.0.0/0 in IP Access List in MongoDB Atlas so that Render could connect.
 
 ## Setup
 1. Clone the repo
