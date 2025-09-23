@@ -1,44 +1,32 @@
 const Task = require("../models/Task");
 
 async function createTask(data) {
-  const doc = new Task(data);
-  return await doc.save();
+  const task = new Task(data);
+  return task.save();
 }
 
 async function getTasks(filter = {}, options = {}) {
-  const page = Number(options.page) || 1;
-  const limit = Number(options.limit) || 50;
+  const page = parseInt(options.page) || 1;
+  const limit = parseInt(options.limit) || 50;
   const skip = (page - 1) * limit;
   const sort = options.sort || "-createdAt";
 
-  const tasks = await Task.find(filter)
-    .sort(sort)
-    .skip(skip)
-    .limit(limit)
-    .exec();
+  const tasks = await Task.find(filter).sort(sort).skip(skip).limit(limit);
+
   const total = await Task.countDocuments(filter);
   return { tasks, total, page, limit };
 }
 
 async function getTaskById(id) {
-  return await Task.findById(id);
+  return Task.findById(id);
 }
 
 async function updateTask(id, update) {
-  return await Task.findByIdAndUpdate(id, update, {
-    new: true,
-    runValidators: true,
-  });
+  return Task.findByIdAndUpdate(id, update, { new: true, runValidators: true });
 }
 
 async function deleteTask(id) {
-  return await Task.findByIdAndDelete(id);
+  return Task.findByIdAndDelete(id);
 }
 
-module.exports = {
-  createTask,
-  getTasks,
-  getTaskById,
-  updateTask,
-  deleteTask,
-};
+module.exports = { createTask, getTasks, getTaskById, updateTask, deleteTask };

@@ -31,6 +31,6 @@ connectDB(process.env.MONGO_URI)
     app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
   })
   .catch((err) => {
-    console.error("DB connection failed:", err);
+    console.log("DB connection failed:", err.message);
     process.exit(1);
   });
