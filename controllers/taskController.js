@@ -2,7 +2,8 @@ const service = require("../services/taskService");
 
 async function createTask(req, res) {
   try {
-    let newTask = await service.createTask(req.body);
+    const taskData = req.body;
+    const newTask = await service.createTask(taskData);
     res.status(201).json(newTask);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -11,31 +12,36 @@ async function createTask(req, res) {
 
 async function getTasks(req, res) {
   try {
-    let q = req.query;
-    let f = {};
+    const q = req.query;
+    const filters = {};
 
     if (q.search) {
-      f.$or = [
+      filters.$or = [
         { title: { $regex: q.search, $options: "i" } },
         { description: { $regex: q.search, $options: "i" } },
       ];
     }
 
-    if (q.status === "completed") f.completed = true;
-    else if (q.status === "pending") f.completed = false;
+    if (q.status === "completed") filters.completed = true;
+    else if (q.status === "pending") filters.completed = false;
 
-    if (q.priority) f.priority = q.priority;
+    if (q.priority) filters.priority = q.priority;
 
-    let opt = {
+    const options = {
       page: q.page ? parseInt(q.page) : 1,
       limit: q.limit ? parseInt(q.limit) : 10,
       sort: q.sort || null,
     };
 
-    console.log("filters:", f);
+    const result = await service.getTasks(filters, options);
+    const tasksArray = Array.isArray(result.tasks) ? result.tasks : [];
 
-    let result = await service.getTasks(f, opt);
-    res.json(result);
+    res.json({
+      tasks: tasksArray,
+      total: result.total || tasksArray.length,
+      page: options.page,
+      limit: options.limit,
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -43,8 +49,8 @@ async function getTasks(req, res) {
 
 async function getTask(req, res) {
   try {
-    let task = await service.getTaskById(req.params.id);
-    if (!task) return res.status(404).json({ error: "not found" });
+    const task = await service.getTaskById(req.params.id);
+    if (!task) return res.status(404).json({ error: "Task not found" });
     res.json(task);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -53,9 +59,9 @@ async function getTask(req, res) {
 
 async function updateTask(req, res) {
   try {
-    let task = await service.updateTask(req.params.id, req.body);
-    if (!task) return res.status(404).json({ error: "not found" });
-    res.json(task);
+    const updatedTask = await service.updateTask(req.params.id, req.body);
+    if (!updatedTask) return res.status(404).json({ error: "Task not found" });
+    res.json(updatedTask);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -63,9 +69,9 @@ async function updateTask(req, res) {
 
 async function deleteTask(req, res) {
   try {
-    let ok = await service.deleteTask(req.params.id);
-    if (!ok) return res.status(404).json({ error: "not found" });
-    res.json({ msg: "removed" });
+    const ok = await service.deleteTask(req.params.id);
+    if (!ok) return res.status(404).json({ error: "Task not found" });
+    res.json({ msg: "Task removed" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
