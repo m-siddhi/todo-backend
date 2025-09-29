@@ -1,86 +1,66 @@
-const service = require("../services/taskService");
+const Task = require("../models/Task");
 
-async function createTask(req, res) {
+exports.getTasks = async (req, res) => {
   try {
-    const taskData = req.body;
-    const newTask = await service.createTask(taskData);
-    res.status(201).json(newTask);
+    const tasks = await Task.find();
+    res.json(tasks);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ message: err.message });
   }
-}
+};
 
-async function getTasks(req, res) {
+exports.createTask = async (req, res) => {
   try {
-    const q = req.query;
-    const filters = {};
+    const task = new Task(req.body);
+    const savedTask = await task.save();
+    res.json(savedTask);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+};
 
-    if (q.search) {
-      filters.$or = [
-        { title: { $regex: q.search, $options: "i" } },
-        { description: { $regex: q.search, $options: "i" } },
-      ];
-    }
-
-    if (q.status === "completed") filters.completed = true;
-    else if (q.status === "pending") filters.completed = false;
-
-    if (q.priority) filters.priority = q.priority;
-
-    const options = {
-      page: q.page ? parseInt(q.page) : 1,
-      limit: q.limit ? parseInt(q.limit) : 10,
-      sort: q.sort || null,
-    };
-
-    const result = await service.getTasks(filters, options);
-    const tasksArray = Array.isArray(result.tasks) ? result.tasks : [];
-
-    res.json({
-      tasks: tasksArray,
-      total: result.total || tasksArray.length,
-      page: options.page,
-      limit: options.limit,
+exports.updateTask = async (req, res) => {
+  try {
+    const updatedTask = await Task.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
     });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-}
-
-async function getTask(req, res) {
-  try {
-    const task = await service.getTaskById(req.params.id);
-    if (!task) return res.status(404).json({ error: "Task not found" });
-    res.json(task);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-}
-
-async function updateTask(req, res) {
-  try {
-    const updatedTask = await service.updateTask(req.params.id, req.body);
-    if (!updatedTask) return res.status(404).json({ error: "Task not found" });
     res.json(updatedTask);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(400).json({ message: err.message });
   }
-}
+};
 
-async function deleteTask(req, res) {
+exports.deleteTask = async (req, res) => {
   try {
-    const ok = await service.deleteTask(req.params.id);
-    if (!ok) return res.status(404).json({ error: "Task not found" });
-    res.json({ msg: "Task removed" });
+    await Task.findByIdAndDelete(req.params.id);
+    res.json({ message: "Task deleted" });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(400).json({ message: err.message });
   }
-}
+};
 
-module.exports = {
-  createTask,
-  getTasks,
-  getTask,
-  updateTask,
-  deleteTask,
+exports.searchTasks = async (req, res) => {
+  try {
+    const { q } = req.query;
+    const tasks = await Task.find({
+      title: { $regex: q, $options: "i" },
+    });
+    res.json(tasks);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+};
+
+exports.updateStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+    const updatedTask = await Task.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true }
+    );
+    res.json(updatedTask);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
 };
