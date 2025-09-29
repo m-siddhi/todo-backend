@@ -1,40 +1,20 @@
-require("dotenv").config();
-require("express-async-errors");
-
 const express = require("express");
-const morgan = require("morgan");
 const cors = require("cors");
-
-const connectDB = require("./config/db");
-const taskRoutes = require("./routes/taskRoutes");
-const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 
 const app = express();
 
-app.use(express.json());
+// Enable CORS for your React app
 app.use(
   cors({
-    origin: ["https://todo-frontend-ecru-theta.vercel.app/"], // replace with your frontend URL
+    origin: "http://localhost:3000", // allow requests from React
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   })
 );
-if (process.env.NODE_ENV !== "production") app.use(morgan("dev"));
 
-app.get("/", (req, res) => {
-  res.send("API is running...");
-});
+app.use(express.json());
 
-app.use("/api/tasks", taskRoutes);
+// Example route
+app.use("/api/tasks", require("./routes/tasks"));
 
-app.use(notFound);
-app.use(errorHandler);
-
-const PORT = process.env.PORT || 5000;
-
-connectDB(process.env.MONGO_URI)
-  .then(() => {
-    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-  })
-  .catch((err) => {
-    console.log("DB connection failed:", err.message);
-    process.exit(1);
-  });
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
